@@ -2,12 +2,15 @@ import os
 import glob
 import PyPDF2
 
+nao_processados_path = "nao_processados"
+processados_path = "processados"
+separados_path = "separados"
+
 # Função de Inicialização:
 def init():
     print("Iniciando separador de PDF's")
 
-    diretorio = "nao_processados"
-    padrao_pdf = os.path.join(diretorio, '*.pdf')
+    padrao_pdf = os.path.join(nao_processados_path, '*.pdf')
     arquivos_pdf = glob.glob(padrao_pdf)
 
     if(len(arquivos_pdf) == 0):
@@ -15,17 +18,19 @@ def init():
     else:
         processar_arquivos(arquivos_pdf)
 
+
 # Função para percorrer multiplos arquivos na pasta nao_processados
 def processar_arquivos(arquivos):
     print("Iniciando processador de PDF's")
     
     for arquivo in arquivos:
+        print("Processando arquivo: " + arquivo)
         processar_pdf(arquivo)
+        moverArquivo(arquivo)
 
 
 def processar_pdf(arquivo):
     pdf_reader = PyPDF2.PdfReader(arquivo)
-    print(pdf_reader.pages)
 
     for page_num in range(len(pdf_reader.pages)):
             # Obtém o texto da página
@@ -37,7 +42,7 @@ def processar_pdf(arquivo):
 
             # Cria um novo PDF com uma única página
             nome_final = tratarNome(nome_linha)
-            novo_pdf = f"separados/{nome_final}.pdf"
+            novo_pdf = f"{separados_path}/{nome_final}.pdf"
 
             output = PyPDF2.PdfWriter()
             output.add_page(pdf_reader.pages[page_num])
@@ -48,5 +53,10 @@ def tratarNome(nome):
     corte = nome.find(' ')
     nomeFinal = nome[corte:]
     return nomeFinal
-      
+
+def moverArquivo(arquivo):
+      origem_arquivo = os.path.abspath(arquivo)
+      destino_arquivo = os.path.abspath(f"{processados_path}/{arquivo.replace(f'{nao_processados_path}', '')}")
+      os.rename(origem_arquivo, destino_arquivo)
+
 init()
